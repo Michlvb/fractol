@@ -8,7 +8,7 @@ CC = gcc
 
 RM = rm -f
 
-SRC = main.c
+SRC = main.c colors.c
 
 OBJS = $(SRC:%.c=%.o)
 
