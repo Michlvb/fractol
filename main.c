@@ -40,25 +40,21 @@ int	ft_strcmp(char *s1, char *s2)
 }
 
 //AKA mapping the fractal to the screen, except it is not in the middle yet
-double  complex(double coord, double size, t_data *data)
+void  map_complex(double x, double y, t_data *data)
 {
-	double	value;
-
-	value = (data->re_min + (coord / size) * (data->re_max - data->re_min));
-	return (value);
+	data->c_re = (data->re_min + (x / WIDTH) * (data->re_max - data->re_min));
+	data->c_im = (data->im_min + (y / HEIGHT) * (data->im_max - data->im_min));
+	data->save_re = data->c_re;
+	data->save_im = data->c_im;
 }
 
-int	render_frames(t_data *data)
+int	render_frames(t_vars *data)
 {
 	int		x;
 	int		y;
 	int     n;
-	double  a;
-	double	b;
 	double  aa;
 	double  bb;
-	double	ca;
-	double	cb;
 
 	x = 0;
 	while (x < WIDTH)
@@ -66,20 +62,17 @@ int	render_frames(t_data *data)
 		y = 0;
 		while (y < HEIGHT)
 		{
-			a = complex(x, WIDTH, data); //Complex reel
-			b = complex(y, HEIGHT, data); //Complex imaginary
-			ca = a;
-			cb = b;
+			map_complex(x, y, &data->data);
 			n = 0;
 			while (n < MAX_ITER)
 			{
-				aa = a*a - b*b;	
-				bb = 2 * a * b;
+				aa = data->data.c_re*data->data.c_re - data->data.c_im*data->data.c_im;	
+				bb = 2 * data->data.c_re * data->data.c_im;
 
-				a = aa + ca;
-				b = bb + cb;
+				data->data.c_re = aa + data->data.save_re;
+				data->data.c_im = bb + data->data.save_im;
 
-				if (fabs(a + b) > 4)
+				if (data->data.c_re * data->data.c_re + data->data.c_im * data->data.c_im > 4.0)
 				{
 					break ;
 				}
@@ -87,9 +80,9 @@ int	render_frames(t_data *data)
 			}
 			if (n == MAX_ITER)
 			{
-				my_mlx_pixel_put(data, x, y, 0);
+				mlx_pixel_put(data->mlx, data->win, x, y, 0);
 			} else {
-				my_mlx_pixel_put(data, x, y, color_palette(n));
+				mlx_pixel_put(data->mlx, data->win, x, y, color_palette(n));
 			}
 			y++;
 		}
@@ -125,19 +118,44 @@ double	interpolate(double start, double end, double interp)
 
 void	zoom(t_vars *frac, double m_re, double m_im, double interp)
 {
-	frac->data.re_min = interpolate(m_re, frac->data.re_min, interp);
-	frac->data.im_min = interpolate(m_im, frac->data.im_min, interp);
-	frac->data.re_max = interpolate(m_re, frac->data.re_max, interp);
-	frac->data.im_max = interpolate(m_im, frac->data.im_max, interp);
+	double re_range = (frac->data.re_max - frac->data.re_min) * interp;
+	double im_range = (frac->data.im_max - frac->data.im_min) * interp;
+
+	frac->data.re_min = m_re - re_range / 2;
+	frac->data.re_max = m_re + re_range / 2;
+	frac->data.im_min = m_im - im_range / 2;
+	frac->data.im_max = m_im + im_range / 2;
+
+	// interp = 0.1;
+	// frac->data.re_min = interpolate(m_re, frac->data.re_min, interp);
+	// frac->data.im_min = interpolate(m_im, frac->data.im_min, interp);
+	// frac->data.re_max = interpolate(m_re, frac->data.re_max, interp);
+	// frac->data.im_max = interpolate(m_im, frac->data.im_max, interp);
 }
 
-int	zoom_control(int keycode, t_vars *frac)
+int	zoom_control(int keycode, int x, int y, t_vars *frac)
 {
+	double	zoom_factor;
+	double	*interp;
+
+	interp = &frac->pos.interp;
+	zoom_factor = 1.03;
+	printf("CHECK RE_MIN BEFORE ZOOM: %f\n", frac->data.re_min);
 	if (keycode == 5)
 	{
-		frac->pos.interp = 1.0/1.03;
-		// zoom(frac, fra)
-		// zoom(frac, frac->mouse.Re, frac->mouse.Im, (1.0/1.03));
+		*interp /= zoom_factor;
+		zoom(frac, frac->mouse.Re, frac->mouse.Im, 1.0 / zoom_factor);
+		printf("CHECK FRAC: %d\n", x);
+		printf("CHECK FRAC: %d\n", y);
+		printf("CHECK RE_MIN AFTER ZOOM: %f\n", frac->data.re_min);
+		// frac->data.re_min = interpolate(m_re, frac->data.re_min, interp);
+		// frac->data.im_min = interpolate(m_im, frac->data.im_min, interp);
+		// frac->data.re_max = interpolate(m_re, frac->data.re_max, interp);
+		// frac->data.im_max = interpolate(m_im, frac->data.im_max, interp);
+	} else if (keycode == 4)
+	{
+		*interp += zoom_factor;
+		zoom(frac, frac->mouse.Re, frac->mouse.Im, zoom_factor);
 	}
 	return (0);
 }
@@ -152,10 +170,11 @@ int	mouse_move(int x, int y, t_vars *frac)
 void	init(t_vars *fractal)
 {
 	fractal->data.re_max = 2.0;
-	fractal->data.im_min = -2.0;
 	fractal->data.re_min = -2.0;
+	fractal->data.im_min = -2.0;
 	// Calculate based on the screen ratio, to avoid image distortion when the display window ins't a square.
-	fractal->data.im_max = fractal->data.im_min + (fractal->data.re_max + fractal->data.re_min) * HEIGHT / WIDTH;
+	fractal->data.im_max = fractal->data.im_min + (fractal->data.re_max - fractal->data.re_min) * HEIGHT / WIDTH;
+	// fractal->data.im_max = HEIGHT / 100;
 	fractal->pos.interp = 1.0;
 }
 
@@ -182,9 +201,9 @@ int	main(int argc, char *argv[])
 	vars.data.addr = mlx_get_data_addr(vars.data.img, &vars.data.bits_per_pixel, &vars.data.line_length, &vars.data.endian);
 	mlx_hook(vars.win, KEYDOWN, 1L << 0, close, &vars);
 	mlx_hook(vars.win, MOUSEMOVE, 0, mouse_move, &vars);
-	mlx_mouse_hook(vars.win, zoom_control, &vars);
+	mlx_hook(vars.win, 4, 0, zoom_control, &vars);
+	mlx_loop_hook(vars.mlx, render_frames, &vars);
 	mlx_put_image_to_window(vars.mlx, vars.win, vars.data.img, 0, 0);
-	mlx_loop_hook(vars.mlx, render_frames, &vars.data);
 	mlx_loop(vars.mlx);
 }
 

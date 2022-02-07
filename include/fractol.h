@@ -48,6 +48,10 @@ typedef struct s_data {
 	double	re_min;
 	double	im_min;
 	double	im_max;
+	double	c_re;
+	double	c_im;
+	double	save_re;
+	double	save_im;
 }	t_data;
 
 typedef struct s_mouse {
@@ -76,8 +80,8 @@ enum	e_events {
 int		color_palette(int range);
 void	my_mlx_pixel_put(t_data *data, int x, int y, int color);
 int		ft_strcmp(char *s1, char *s2);
-double	complex(double coord, double size, t_data *data);
-int		render_frames(t_data *data);
+void	map_complex(double x, double y, t_data *data);
+int		render_frames(t_vars *data);
 int		close(int keycode, t_vars *vars);
 
 #endif
