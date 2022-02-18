@@ -6,24 +6,23 @@
 /*   By: mlammert <mlammert@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/01/24 09:39:19 by mlammert      #+#    #+#                 */
-/*   Updated: 2022/02/04 17:24:42 by mlammert      ########   odam.nl         */
+/*   Updated: 2022/02/17 21:09:23 by mlammert      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <mlx.h>
 #include "fractol.h"
 #include <stdio.h>
 #include <math.h>
 
 int	color_palette(int range);
-
-void	my_mlx_pixel_put(t_data *data, int x, int y, int color)
-{
-	char	*dst;
-
-	dst = data->addr + (y * data->line_length + x * (data->bits_per_pixel / 8));
-	*(unsigned int *)dst = color;
-}
+int Key_board_input(int keycode, t_vars *vars);
+int close_window();
+void	zoom(t_vars *frac, double m_re, double m_im, double interp);
+int	zoom_control(int keycode, int x, int y, t_vars *frac);
+int	mouse_move(int x, int y, t_vars *frac);
+void  map_complex(double x, double y, t_data *data, int check_julia);
+void	calculate_set(t_data *frac);
+int		render_frames(t_vars *data);
 
 int	ft_strcmp(char *s1, char *s2)
 {
@@ -39,69 +38,6 @@ int	ft_strcmp(char *s1, char *s2)
 	return (s1[i] - s2[i]);
 }
 
-//AKA mapping the fractal to the screen, except it is not in the middle yet
-void  map_complex(double x, double y, t_data *data)
-{
-	data->c_re = (data->re_min + (x / WIDTH) * (data->re_max - data->re_min));
-	data->c_im = (data->im_min + (y / HEIGHT) * (data->im_max - data->im_min));
-	data->save_re = data->c_re;
-	data->save_im = data->c_im;
-}
-
-int	render_frames(t_vars *data)
-{
-	int		x;
-	int		y;
-	int     n;
-	double  aa;
-	double  bb;
-
-	x = 0;
-	while (x < WIDTH)
-	{
-		y = 0;
-		while (y < HEIGHT)
-		{
-			map_complex(x, y, &data->data);
-			n = 0;
-			while (n < MAX_ITER)
-			{
-				aa = data->data.c_re*data->data.c_re - data->data.c_im*data->data.c_im;	
-				bb = 2 * data->data.c_re * data->data.c_im;
-
-				data->data.c_re = aa + data->data.save_re;
-				data->data.c_im = bb + data->data.save_im;
-
-				if (data->data.c_re * data->data.c_re + data->data.c_im * data->data.c_im > 4.0)
-				{
-					break ;
-				}
-				n++;
-			}
-			if (n == MAX_ITER)
-			{
-				mlx_pixel_put(data->mlx, data->win, x, y, 0);
-			} else {
-				mlx_pixel_put(data->mlx, data->win, x, y, color_palette(n));
-			}
-			y++;
-		}
-		x++;
-	}
-	return (0);
-}
-
-//Destroys window
-int	close(int keycode, t_vars *vars)
-{
-	if (keycode == 53)
-	{
-		mlx_destroy_window(vars->mlx, vars->win);
-		exit(0);
-	}
-	return (0);
-}
-
 int	ErrorMessage(void)
 {
 	printf("Incorrect input\n");
@@ -111,70 +47,25 @@ int	ErrorMessage(void)
 	return (0);
 }
 
-double	interpolate(double start, double end, double interp)
+// double	interpolate(double start, double end, double interp)
+// {
+// 	return (start + ((end - start) * interp));
+// }
+
+
+void	init(t_vars *fractal, double re, double im)
 {
-	return (start + ((end - start) * interp));
-}
-
-void	zoom(t_vars *frac, double m_re, double m_im, double interp)
-{
-	double re_range = (frac->data.re_max - frac->data.re_min) * interp;
-	double im_range = (frac->data.im_max - frac->data.im_min) * interp;
-
-	frac->data.re_min = m_re - re_range / 2;
-	frac->data.re_max = m_re + re_range / 2;
-	frac->data.im_min = m_im - im_range / 2;
-	frac->data.im_max = m_im + im_range / 2;
-
-	// interp = 0.1;
-	// frac->data.re_min = interpolate(m_re, frac->data.re_min, interp);
-	// frac->data.im_min = interpolate(m_im, frac->data.im_min, interp);
-	// frac->data.re_max = interpolate(m_re, frac->data.re_max, interp);
-	// frac->data.im_max = interpolate(m_im, frac->data.im_max, interp);
-}
-
-int	zoom_control(int keycode, int x, int y, t_vars *frac)
-{
-	double	zoom_factor;
-	double	*interp;
-
-	interp = &frac->pos.interp;
-	zoom_factor = 1.03;
-	printf("CHECK RE_MIN BEFORE ZOOM: %f\n", frac->data.re_min);
-	if (keycode == 5)
-	{
-		*interp /= zoom_factor;
-		zoom(frac, frac->mouse.Re, frac->mouse.Im, 1.0 / zoom_factor);
-		printf("CHECK FRAC: %d\n", x);
-		printf("CHECK FRAC: %d\n", y);
-		printf("CHECK RE_MIN AFTER ZOOM: %f\n", frac->data.re_min);
-		// frac->data.re_min = interpolate(m_re, frac->data.re_min, interp);
-		// frac->data.im_min = interpolate(m_im, frac->data.im_min, interp);
-		// frac->data.re_max = interpolate(m_re, frac->data.re_max, interp);
-		// frac->data.im_max = interpolate(m_im, frac->data.im_max, interp);
-	} else if (keycode == 4)
-	{
-		*interp += zoom_factor;
-		zoom(frac, frac->mouse.Re, frac->mouse.Im, zoom_factor);
-	}
-	return (0);
-}
-
-int	mouse_move(int x, int y, t_vars *frac)
-{
-	frac->mouse.Re = x / (WIDTH / (frac->data.re_max - frac->data.re_min)) + frac->data.re_min;
-	frac->mouse.Im = y / (HEIGHT / (frac->data.im_max - frac->data.im_min)) + frac->data.im_min;
-	return (0);
-}
-
-void	init(t_vars *fractal)
-{
-	fractal->data.re_max = 2.0;
-	fractal->data.re_min = -2.0;
-	fractal->data.im_min = -2.0;
+	fractal->data.re_max = HEIGHT / 100;
+	fractal->data.re_min = -(HEIGHT / 100);
+	fractal->data.im_min = -(WIDTH / 100);
 	// Calculate based on the screen ratio, to avoid image distortion when the display window ins't a square.
-	fractal->data.im_max = fractal->data.im_min + (fractal->data.re_max - fractal->data.re_min) * HEIGHT / WIDTH;
-	// fractal->data.im_max = HEIGHT / 100;
+	//fractal->data.im_min + (fractal->data.re_max - fractal->data.re_min) * HEIGHT / WIDTH;
+	fractal->data.im_max = WIDTH / 100;
+	if(fractal->julia)
+	{
+		fractal->data.save_re = re;
+		fractal->data.save_im = im;
+	}
 	fractal->pos.interp = 1.0;
 }
 
@@ -188,18 +79,19 @@ int	main(int argc, char *argv[])
 		return (ErrorMessage());
 	else if (ft_strcmp(argv[1], "mandelbrot") == 0 || \
 			ft_strcmp(argv[1], "Mandelbrot") == 0)
-		printf("DISPLAYING MANDELBROT\n");
+		vars.julia = 0;
 	else if (ft_strcmp(argv[1], "julia") == 0 || \
 			ft_strcmp(argv[1], "Julia") == 0)
-		printf("DISPLAYING JULIA\n");
+		vars.julia = 1;
 	else
 		return (ErrorMessage());
-	init(&vars);
+	init(&vars, -0.7269, 0.1889);
 	vars.mlx = mlx_init();
 	vars.win = mlx_new_window(vars.mlx, WIDTH, HEIGHT, "FRACTAL");
 	vars.data.img = mlx_new_image(vars.mlx, WIDTH, HEIGHT);
 	vars.data.addr = mlx_get_data_addr(vars.data.img, &vars.data.bits_per_pixel, &vars.data.line_length, &vars.data.endian);
-	mlx_hook(vars.win, KEYDOWN, 1L << 0, close, &vars);
+	mlx_hook(vars.win, KEYDOWN, 1L << 0, Key_board_input, &vars);
+	mlx_hook(vars.win, DESTROY, 0, close_window, &vars);
 	mlx_hook(vars.win, MOUSEMOVE, 0, mouse_move, &vars);
 	mlx_hook(vars.win, 4, 0, zoom_control, &vars);
 	mlx_loop_hook(vars.mlx, render_frames, &vars);

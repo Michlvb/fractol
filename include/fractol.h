@@ -6,7 +6,7 @@
 /*   By: mlammert <mlammert@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/01/24 18:20:48 by mlammert      #+#    #+#                 */
-/*   Updated: 2022/02/04 17:15:24 by mlammert      ########   odam.nl         */
+/*   Updated: 2022/02/17 21:08:31 by mlammert      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 
 # include <stdlib.h>
 # include <stdio.h>
+# include <mlx.h>
+# include <math.h>
 
 # define WIDTH 700
 # define HEIGHT 700
@@ -23,8 +25,6 @@
 # define MAX_ITER 100
 
 typedef struct s_coord {
-	double	shift_x;
-	double	shift_y;
 	double	interp;
 }	t_coord;
 
@@ -36,7 +36,6 @@ typedef struct s_coord {
 // 	double	c_re;
 // 	double	c_im;
 // }	t_mandel
-
 
 typedef struct s_data {
 	void	*img;
@@ -62,6 +61,7 @@ typedef struct s_mouse {
 typedef struct s_vars {
 	void		*mlx;
 	void		*win;
+	int			julia;
 	t_data		data;
 	t_coord		pos;
 	t_mouse		mouse;
@@ -80,8 +80,13 @@ enum	e_events {
 int		color_palette(int range);
 void	my_mlx_pixel_put(t_data *data, int x, int y, int color);
 int		ft_strcmp(char *s1, char *s2);
-void	map_complex(double x, double y, t_data *data);
+void	map_complex(double x, double y, t_data *data, int check);
 int		render_frames(t_vars *data);
-int		close(int keycode, t_vars *vars);
+int		Key_board_input(int keycode, t_vars *vars);
+int		close_window(void);
+void	zoom(t_vars *frac, double m_re, double m_im, double interp);
+int		zoom_control(int keycode, int x, int y, t_vars *frac);
+int		mouse_move(int x, int y, t_vars *frac);
+void	calculate_set(t_data *frac);
 
 #endif
