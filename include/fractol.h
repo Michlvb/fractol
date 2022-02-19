@@ -22,20 +22,11 @@
 # define HEIGHT 700
 # define START	-2.0
 # define END	2.0
-# define MAX_ITER 100
+# define MAX_ITER 500
 
 typedef struct s_coord {
 	double	interp;
 }	t_coord;
-
-// typedef struct s_mandel {
-// 	double	re_max;
-// 	double	re_min;
-// 	double	im_min;
-// 	double	im_max;
-// 	double	c_re;
-// 	double	c_im;
-// }	t_mandel
 
 typedef struct s_data {
 	void	*img;
@@ -88,5 +79,6 @@ void	zoom(t_vars *frac, double m_re, double m_im, double interp);
 int		zoom_control(int keycode, int x, int y, t_vars *frac);
 int		mouse_move(int x, int y, t_vars *frac);
 void	calculate_set(t_data *frac);
+void	init(t_vars *fractal);
 
 #endif

@@ -66,7 +66,8 @@ int	render_frames(t_vars *data)
 			} else {
 				// double smoothed = log2(log2(data->data.c_re * data->data.c_re + data->data.c_im * data->data.c_im) / 2);
 				// int colorN = (int)(sqrt(n + 10 - smoothed) * 256) % 16;
-				// double smooth = n + 1 - log(log(fabs(data->data.c_re * data->data.c_re + data->data.c_im * data->data.c_im )))/log(2);
+				// double smooth = n + 1 - log(log(sqrt(data->data.c_re * data->data.c_re + data->data.c_im * data->data.c_im )))/log(2);
+				// smooth /= MAX_ITER
 				mlx_pixel_put(data->mlx, data->win, x, y, color_palette(n));
 			}
 			y++;

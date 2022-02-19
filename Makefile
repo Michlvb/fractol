@@ -8,7 +8,7 @@ CC = gcc
 
 RM = rm -f
 
-SRC = main.c colors.c events.c draw_fractal.c
+SRC = main.c colors.c events.c draw_fractal.c args_checker.c
 
 OBJS = $(SRC:%.c=%.o)
 
