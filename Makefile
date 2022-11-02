@@ -50,9 +50,9 @@ clean:
 	$(MAKE) fclean -C $(FT_PRINTF_DIR)
 	$(MAKE) clean -C $(MLX_DIR)
 	$(RM) $(OBJS)
-	$(RM) $(SPECIAL_RM)
 
 fclean: clean
 	$(RM) $(NAME)
+	$(RM) $(SPECIAL_RM)
 
 re: fclean all

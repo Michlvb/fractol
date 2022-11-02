@@ -6,7 +6,7 @@
 /*   By: mlammert <mlammert@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/08/14 16:15:58 by mlammert      #+#    #+#                 */
-/*   Updated: 2022/10/31 16:00:00 by mlammert      ########   odam.nl         */
+/*   Updated: 2022/11/02 20:46:39 by mlammert      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,8 +50,6 @@ int	ft_check_inf(t_fractal *fractal)
 	return (n);
 }
 
-
-
 void	ft_my_pixel_put(t_fractal *frac, int x, int y, int color)
 {
 	char	*dst;
@@ -78,11 +76,12 @@ int	render_frames(t_fractal *fractal)
 			if (n == MAX_ITER)
 				ft_my_pixel_put(fractal, x, y, 0);
 			else
-				ft_my_pixel_put(fractal,x, y, color_palette(n));
+				ft_my_pixel_put(fractal, x, y, color_palette(n));
 			y++;
 		}
 		x++;
 	}
-	mlx_put_image_to_window(fractal->mlx, fractal->win, fractal->data.img, 0, 0);
+	mlx_put_image_to_window(fractal->mlx, fractal->win, \
+	fractal->data.img, 0, 0);
 	return (0);
 }
