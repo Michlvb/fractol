@@ -76,17 +76,9 @@ int	render_frames(t_fractal *fractal)
 			map_complex(x, y, &fractal->data, fractal->julia);
 			n = ft_check_inf(fractal);
 			if (n == MAX_ITER)
-			{
-				// mlx_pixel_put(fractal->mlx, fractal->win, x, y, 0);
 				ft_my_pixel_put(fractal, x, y, 0);
-			}
 			else
-			{
-				// mlx_pixel_put(fractal->mlx, fractal->win, 
-				// x, y, color_palette(n));
-				ft_my_pixel_put(fractal,
-				x, y, color_palette(n));
-			}
+				ft_my_pixel_put(fractal,x, y, color_palette(n));
 			y++;
 		}
 		x++;
