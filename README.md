@@ -1,4 +1,4 @@
-# fractol
+# fractol 42
 
 The term fractal was first used by mathematician Benoit Mandelbrot in 1974. He based
 it on the Latin word fractus which means "broken" or "fractured".
