@@ -7,8 +7,8 @@ remains the same at every scale.
 Various natural phenomena – like the romanesco cabbage – have some fractal features.
 
 <h1>Mandelbrot</h1>
-![Alt text](mandelbrot.png "Optional title")
+![Alt text](mandelbrot.png "A fractal")
 
 <h1>A Julia set</h1>
 
-![Alt text](julia.png "Optional title")
+![Alt text](julia.png "Another fractal")
